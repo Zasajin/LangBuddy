@@ -27,7 +27,7 @@ async def on_message(message):
         await message.channel.send('Hello! I am you new partner for learning new languages!')
 
 # Keepalive server
-async def health_check():
+async def health_check(request):
 
     return web.Response(text='Bot is alive!')
 
