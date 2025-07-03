@@ -1,13 +1,36 @@
 import discord
+from discord.exe import commands
 import asyncio
-import aiohttp
-from aiohttp import web
 import os
+from dotenv import load_dotenv
+from openai import AsyncOpenAI
+import logging
+import json
 
-# 
+# Loading environment variables
+load_dotenv()
+
+# Logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+# Bot config
 intents = discord.Intents.default()
 intents.message_content = True
-bot = discord.Client(intents=intents)
+bot = commands.Bot(command_prefix='!', intents=intents)
+
+# OpenRouter config via OpenAI lib
+client = AsyncOpenAI(
+    api_key=os.getenv('OPENROUTER_API_KEY'),
+    base_url='https://openrouter.ai/api/v1',
+    default_headers={
+        'HTTP_Referer': os.getenv('API_URL', 'http://localhost:3000'),
+        'X-Title': 'Discord Language Learning Bot'
+    }
+)
+
+# TODO: insert LLM Models as per need
+MODEL_OPTIONS = {}
 
 @bot.event
 async def on_ready():
