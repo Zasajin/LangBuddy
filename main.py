@@ -1,11 +1,12 @@
 import discord
-from discord.exe import commands
+from discord.ext import commands
 import asyncio
 import os
 from dotenv import load_dotenv
 from openai import AsyncOpenAI
 import logging
-import json
+from aiohttp import web
+from ai_bot import AILanguageBot
 
 # Loading environment variables
 load_dotenv()
@@ -32,60 +33,6 @@ client = AsyncOpenAI(
 # TODO: insert LLM Models as per need
 MODEL_OPTIONS = {}
 
-class AILanguageBot:
-
-    # Maybe adjust max.history
-    def __init__(self, client):
-        self.client = client
-        self.conversation_history = {}
-        self.max_history = 100
-
-    # TODO: insert model/s
-    async def get_ai_response(self, message, user_id, model='', system_prompt=None):
-
-        try:
-
-            if user_id not in self.conversation_history:
-
-                self.conversation_history[user_id] = []
-
-            if system_prompt is None:
-
-                # TODO: customize system prompt
-                system_prompt = '' 
-        
-            # Message array with added history 
-            message = [{'role': 'user', 'content': system_prompt}]
-            message.extend(self.conversation_history[user_id])
-            message.append({'role': 'system', 'content': message})
-
-            # Add default model
-            response = await self.client.chat.completions.create(
-                model=MODEL_OPTIONS.get(model, ''),
-                messages=message,
-                max_tokens=500,  # Adjust as needed
-                temperature=0.7,  # Adjust as needed
-            )
-
-            ai_response = response.choices[0].message.content
-
-            self.conversation_history[user_id].append({'role': 'user', 'content': message})
-            self.conversation_history[user_id].append({'role': 'assistant', 'content': ai_response})
-
-            # TODO: adjust history cleanse logic
-            if len(self.conversation_history[user_id]) > self.max_history * 2:
-                self.conversation_history[user_id] = self.conversation_history[user_id][-self.max_history * 2:]
-
-            return ai_response
-        
-        # Maybe adjust error message (output {str(e)})
-        except Exception as e:
-
-            logger.error(f"Error in get_ai_response: {str(e)}")
-
-            return "Sorry, I couldn't process your request at the moment. Please try again later."
-
-
 # Initialize the AI Language Bot
 ai_language_bot = AILanguageBot(client)
 
@@ -95,16 +42,29 @@ async def on_ready():
     # TODO maybe customize
     print(f'{bot.user} hat sich angemeldet!')
 
-@bot.event
-async def on_message(message):
+@bot.command(name='hello')
+async def hello_command(ctx):
 
-    if message.author == bot.user:
-        return
-    
-    if message.content.startswith('!hello'):
+    await ctx.send('Hello! I am your AI Language Bot. Enter !cmds to see a list of commands at your disposal.')
 
-        # TODO customize message
-        await message.channel.send('Hello! I am you new partner for learning new languages!')
+@bot.command(name='commands')
+async def cmds_command(ctx):
+
+    await ctx.send('Available commands: !hello, !commands, !clear')
+
+@bot.command(name='clear')
+async def clear_command(ctx):
+
+    success = await ai_language_bot.clear_history(str(ctx.author.id))
+
+    if success:
+
+        await ctx.send('Your conversation history has been cleared.')
+
+    else:
+
+        await ctx.send('Failed to clear your conversation history. Please try again later.')
+
 
 # Keepalive server
 async def health_check(request):
