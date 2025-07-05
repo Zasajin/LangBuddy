@@ -13,7 +13,7 @@ class AILanguageBot:
         self.max_history = 50
 
     # TODO: insert model/s
-    async def get_ai_response(self, message: str, user_id: str, model: str = '', system_prompt: Optional[str] = None) -> str:
+    async def get_ai_response(self, message: str, user_id: str, model: str = 'openrouter/cypher-alpha:free', system_prompt: Optional[str] = None) -> str:
 
         try:
 
@@ -33,7 +33,7 @@ class AILanguageBot:
 
             # Add default model
             response = await self.client.chat.completions.create(
-                model=MODEL_OPTIONS.get(model, ''),
+                model=MODEL_OPTIONS.get(model, 'openrouter/cypher-alpha:free'),
                 messages=message,
                 max_tokens=500,  # Adjust as needed
                 temperature=0.7,  # Adjust as needed

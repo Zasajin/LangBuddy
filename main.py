@@ -31,7 +31,9 @@ client = AsyncOpenAI(
 )
 
 # TODO: insert LLM Models as per need
-MODEL_OPTIONS = {}
+MODEL_OPTIONS = {
+    'cypher-free': 'openrouter/cypher-alpha:free',
+}
 
 # Initialize the AI Language Bot
 ai_language_bot = AILanguageBot(client)
