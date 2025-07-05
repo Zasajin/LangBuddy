@@ -11,6 +11,10 @@ from ai_bot import AILanguageBot
 # Loading environment variables
 load_dotenv()
 
+# Debug: Teste ob Keys geladen werden
+print(f"DISCORD_TOKEN: {os.getenv('DISCORD_TOKEN')}")
+print(f"OPENROUTER_API_KEY: {os.getenv('OPENROUTER_API_KEY')}")
+
 # Logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
