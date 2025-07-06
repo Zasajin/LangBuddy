@@ -30,13 +30,32 @@ client = AsyncOpenAI(
     }
 )
 
-# TODO: insert LLM Models as per need
 MODEL_OPTIONS = {
-    'cypher-free': 'openrouter/cypher-alpha:free',
+
+    # Core learning features
+    'translate': 'qwen/qwen3-8b',
+    'grammar': 'deepseek/deepseek-r1-0528-qwen3-8b',
+    'vocabulary': 'qwen/qwen3-8b',
+    'mediation': 'mistralai/mistral-small-3.2-24b',
+
+    # Interactive features
+    'conversation': 'mistralai/mistral-small-3.2-24b',
+    'assessment': 'deepseek/deepseek-r1-0528-qwen3-8b',
+    'progress_analysis': 'deepseek/deepseek-r1-0528-qwen3-8b',
+
+    # Special features
+    'etymologie': 'qwen/qwen3-8b',
+    'free_chat': 'qwen/qwen3-8b',
+    #'cultural_context': 'mistralai/mistral-small-3.2-24b',
+    # To avoid unneccessary model swapping mid learning, this might as well just be part of conversation
+    # where mistral is used anyways
+
+    # Fallback
+    'general': 'qwen/qwen3-8b',
 }
 
 # Initialize the AI Language Bot
-ai_language_bot = AILanguageBot(client)
+ai_language_bot = AILanguageBot(client, MODEL_OPTIONS)
 
 @bot.event
 async def on_ready():
@@ -47,7 +66,7 @@ async def on_ready():
 @bot.command(name='hello')
 async def hello_command(ctx):
 
-    await ctx.send('Hello! I am your AI Language Bot. Enter !cmds to see a list of commands at your disposal.')
+    await ctx.send('Hello! I am your AI Language Bot. Enter !commands to see a list of commands at your disposal.')
 
 @bot.command(name='commands')
 async def cmds_command(ctx):
