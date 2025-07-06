@@ -76,11 +76,11 @@ async def cmds_command(ctx):
 @bot.command(name='clear')
 async def clear_command(ctx):
 
-    success = await ai_language_bot.clear_history(str(ctx.author.id))
+    success = await ai_language_bot.reset_conversation(str(ctx.author.id))
 
     if success:
 
-        await ctx.send('Your conversation history has been cleared.')
+        await ctx.send('Your conversation history has been reset.')
 
     else:
 

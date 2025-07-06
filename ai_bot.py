@@ -33,7 +33,7 @@ class AILanguageBot:
 
             # Add default model
             response = await self.client.chat.completions.create(
-                model=MODEL_OPTIONS.get(model, 'qwen/qwen3-8b'),
+                model=self.model_options.get(model, 'qwen/qwen3-8b'),
                 messages=messages,
                 max_tokens=500,  # Adjust as needed
                 temperature=0.7,  # Adjust as needed
