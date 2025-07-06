@@ -27,14 +27,14 @@ class AILanguageBot:
                 system_prompt = '' 
         
             # Message array with added history 
-            message = [{'role': 'system', 'content': system_prompt}]
-            message.extend(self.conversation_history[user_id])
-            message.append({'role': 'user', 'content': message})
+            messages = [{'role': 'system', 'content': system_prompt}]
+            messages.extend(self.conversation_history[user_id])
+            messages.append({'role': 'user', 'content': message})
 
             # Add default model
             response = await self.client.chat.completions.create(
                 model=MODEL_OPTIONS.get(model, 'openrouter/cypher-alpha:free'),
-                messages=message,
+                messages=messages,
                 max_tokens=500,  # Adjust as needed
                 temperature=0.7,  # Adjust as needed
             )
