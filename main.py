@@ -7,6 +7,7 @@ from openai import AsyncOpenAI
 import logging
 from aiohttp import web
 from ai_bot import AILanguageBot
+import db
 
 # Loading environment variables
 load_dotenv()
@@ -104,6 +105,7 @@ async def start_web_server():
 # Bot start
 async def main():
 
+    await db.init_db_pool()
     await start_web_server()
     await bot.start(os.environ['DISCORD_TOKEN'])
 
