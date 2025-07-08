@@ -7,6 +7,7 @@ from openai import AsyncOpenAI
 import logging
 from aiohttp import web
 from ai_bot import AILanguageBot
+import db
 
 # Loading environment variables
 load_dotenv()
@@ -34,13 +35,33 @@ client = AsyncOpenAI(
     }
 )
 
-# TODO: insert LLM Models as per need
 MODEL_OPTIONS = {
-    'cypher-free': 'openrouter/cypher-alpha:free',
+
+    # Core learning features
+    'translate': 'qwen/qwen3-8b',
+    'grammar': 'deepseek/deepseek-r1-0528-qwen3-8b',
+    'vocabulary': 'qwen/qwen3-8b',
+    'mediation': 'mistralai/mistral-small-3.2-24b',
+
+    # Interactive features
+    'conversation': 'mistralai/mistral-small-3.2-24b',
+    'assessment': 'deepseek/deepseek-r1-0528-qwen3-8b',
+    'progress_analysis': 'deepseek/deepseek-r1-0528-qwen3-8b',
+
+    # Special features
+    'etymologie': 'qwen/qwen3-8b',
+    'free_chat': 'qwen/qwen3-8b',
+    #'cultural_context': 'mistralai/mistral-small-3.2-24b',
+    # To avoid unneccessary model swapping mid learning, this might as well just be part of conversation
+    # where mistral is used anyways
+
+    # Fallback
+    'general': 'qwen/qwen3-8b',
 }
 
 # Initialize the AI Language Bot
-ai_language_bot = AILanguageBot(client)
+ai_language_bot = AILanguageBot(client, MODEL_OPTIONS)
+
 
 @bot.event
 async def on_ready():
@@ -48,24 +69,27 @@ async def on_ready():
     # TODO maybe customize
     print(f'{bot.user} hat sich angemeldet!')
 
+
 @bot.command(name='hello')
 async def hello_command(ctx):
 
-    await ctx.send('Hello! I am your AI Language Bot. Enter !cmds to see a list of commands at your disposal.')
+    await ai_language_bot.first_contact(ctx)
+
 
 @bot.command(name='commands')
 async def cmds_command(ctx):
 
     await ctx.send('Available commands: !hello, !commands, !clear')
 
+
 @bot.command(name='clear')
 async def clear_command(ctx):
 
-    success = await ai_language_bot.clear_history(str(ctx.author.id))
+    success = await ai_language_bot.reset_conversation(str(ctx.author.id))
 
     if success:
 
-        await ctx.send('Your conversation history has been cleared.')
+        await ctx.send('Your conversation history has been reset.')
 
     else:
 
@@ -77,6 +101,7 @@ async def health_check(request):
 
     return web.Response(text='Bot is alive!')
 
+
 async def start_web_server():
 
     app = web.Application()
@@ -86,11 +111,14 @@ async def start_web_server():
     site = web.TCPSite(runner , '0.0.0.0', int(os.environ.get('PORT', 8080)))
     await site.start()
 
+
 # Bot start
 async def main():
 
+    await db.init_db_pool()
     await start_web_server()
     await bot.start(os.environ['DISCORD_TOKEN'])
+
 
 if __name__ == '__main__':
 
