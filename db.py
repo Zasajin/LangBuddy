@@ -62,13 +62,7 @@ async def add_user(discord_id):
             ON CONFLICT (discord_id) DO NOTHING
             ''', str(discord_id))
 
-        if await check_user(discord_id):
-
-                return True
-
-        else:
-
-                return False
+        return await check_user(discord_id):
 
 
 async def check_user(discord_id):
@@ -81,10 +75,4 @@ async def check_user(discord_id):
             )
             ''', str(discord_id))
         
-        if resut:
-
-            return True
-
-        else:
-
-            return False
+        return result
