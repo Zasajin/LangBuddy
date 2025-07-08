@@ -1,4 +1,5 @@
 import logging
+import db
 from typing import Dict, List, Optional
 
 logger = logging.getLogger(__name__)
@@ -6,14 +7,15 @@ logger = logging.getLogger(__name__)
 class AILanguageBot:
 
     # Maybe adjust max.history
-    def __init__(self, client):
+    def __init__(self, client, model_options):
 
         self.client = client
+        self.model_options =  model_options
         self.conversation_history: Dict[str, List[Dict[str, str]]] = {}
         self.max_history = 50
 
-    # TODO: insert model/s
-    async def get_ai_response(self, message: str, user_id: str, model: str = 'openrouter/cypher-alpha:free', system_prompt: Optional[str] = None) -> str:
+
+    async def get_ai_response(self, message: str, user_id: str, model: str, system_prompt: Optional[str] = None) -> str:
 
         try:
 
@@ -27,14 +29,14 @@ class AILanguageBot:
                 system_prompt = '' 
         
             # Message array with added history 
-            message = [{'role': 'system', 'content': system_prompt}]
-            message.extend(self.conversation_history[user_id])
-            message.append({'role': 'user', 'content': message})
+            messages = [{'role': 'system', 'content': system_prompt}]
+            messages.extend(self.conversation_history[user_id])
+            messages.append({'role': 'user', 'content': message})
 
             # Add default model
             response = await self.client.chat.completions.create(
-                model=MODEL_OPTIONS.get(model, 'openrouter/cypher-alpha:free'),
-                messages=message,
+                model=self.model_options.get(model, 'qwen/qwen3-8b'),
+                messages=messages,
                 max_tokens=500,  # Adjust as needed
                 temperature=0.7,  # Adjust as needed
             )
@@ -57,6 +59,7 @@ class AILanguageBot:
             logger.error(f"Error in get_ai_response: {str(e)}")
 
             return "Sorry, I couldn't process your request at the moment. Please try again later."
+
 
     # Maybe adjust for different use cases
     # i.e. admin only, keep some messages
