@@ -127,8 +127,8 @@ class AILanguageBot:
 
                             self.get_ai_response(
                                 message=ctx.message.content,
-                                user_id=str(ctx.author.id)
-                                model='general'.
+                                user_id=str(ctx.author.id),
+                                model='general',
                                 system_prompt='You are an optimistic language teacher and a new student approaches you. Greet them, but tell them you could not register them (to the database)'
                             )
                             # TODO: Add functionality to explain the user the bot
