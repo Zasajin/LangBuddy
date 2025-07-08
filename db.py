@@ -6,6 +6,7 @@ load_dotenv()
 
 DB_POOL = None
 
+
 async def init_db_pool():
     
     global DB_POOL
@@ -49,3 +50,37 @@ async def get_latest_summary(discord_id):
             ORDER BY ss.created_at DESC
             LIMIT 1
             ''', str(discord_id))
+
+
+async def add_user(discord_id):
+
+    async with DB_POOL.acquire() as conn:
+
+        await conn.execute('''
+            INSERT INTO users (discord_id)
+            VALUES ($1)
+            ON CONFLICT (discord_id) DO NOTHING
+            ''', str(discord_id))
+
+            if await self.check_user(discord_id):
+                
+                
+
+
+async def check_user(discord_id):
+
+    async with DB_POOL.acquire() as conn:
+
+        result = await conn.fetchrow('''
+            SELECT EXISTS (
+                SELECT 1 FROM users WHERE discord_id = $1
+            )
+            ''', str(discord_id))
+        
+        if resut:
+
+            return True
+
+        else:
+
+            return False

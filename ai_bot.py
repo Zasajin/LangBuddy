@@ -1,4 +1,5 @@
 import logging
+import db
 from typing import Dict, List, Optional
 
 logger = logging.getLogger(__name__)
@@ -12,6 +13,7 @@ class AILanguageBot:
         self.model_options =  model_options
         self.conversation_history: Dict[str, List[Dict[str, str]]] = {}
         self.max_history = 50
+
 
     async def get_ai_response(self, message: str, user_id: str, model: str, system_prompt: Optional[str] = None) -> str:
 
@@ -58,6 +60,7 @@ class AILanguageBot:
 
             return "Sorry, I couldn't process your request at the moment. Please try again later."
 
+
     # Maybe adjust for different use cases
     # i.e. admin only, keep some messages
     def reset_conversation(self, user_id: str) -> bool:
@@ -69,3 +72,81 @@ class AILanguageBot:
             return True
 
         return False
+
+
+    def first_contact(self, ctx):
+
+        try:
+
+            result = db.check_user(str(ctx.author.id))
+
+            if result:
+
+                try:
+
+                    await self.get_ai_response(
+                        message=ctx.message.content,
+                        user_id=str(ctx.author.id),
+                        model= 'general',
+                        system_prompt='You are an optimistic language teacher and one of your regular students approaches you. Greet them appropriately to the current daytime CET and ask them how you may help them.'
+                    )
+                
+                except Exception as e:
+
+                    logger.error(f"Error in first_contact: {str(e)}")
+
+                    return "Sorry, I couldn't process your request at the moment. Please try again later."
+
+            else:
+
+                try:
+
+                    success = await db.add_user(str(ctx.author.id))
+
+                    if success:
+
+                        try:
+
+                            self.get_ai_response(
+                                message=ctx.message.content,
+                                user_id=str(ctx.author.id),
+                                model='general',
+                                system_prompt='You are an optimistic language teacher and a new students approaches you. Greet them appropriately to the current daytime CET.'
+                            )
+                            # TODO: Add functionality to explain the user the bot
+                        
+                        except Exception as e:
+
+                            logger.error(f"Error in first_contact: {str(e)}")
+
+                            return "Sorry, I couldn't process your request at the moment. Please try again later."
+                    
+                    else:
+
+                        try:
+
+                            self.get_ai_response(
+                                message=ctx.message.content,
+                                user_id=str(ctx.author.id)
+                                model='general'.
+                                system_prompt='You are an optimistic language teacher and a new student approaches you. Greet them, but tell them you could not register them (to the database)'
+                            )
+                            # TODO: Add functionality to explain the user the bot
+                            
+                        except Exception as e:
+
+                            logger.error(f"Error in first_contact: {str(e)}")
+
+                            return "Sorry, I couldn't process your request at the moment. Please try again later."
+
+                except Exception as e:
+
+                    logger.error(f"Error in first_contact: {str(e)}")
+
+                    return "Sorry, I couldn't process your request at the moment. Please try again later."
+
+        except Exception as e:
+
+            logger.error(f"Error in first_contact: {str(e)}")
+
+            return "Sorry, I couldn't process your request at the moment. Please try again later."

@@ -58,21 +58,25 @@ MODEL_OPTIONS = {
 # Initialize the AI Language Bot
 ai_language_bot = AILanguageBot(client, MODEL_OPTIONS)
 
+
 @bot.event
 async def on_ready():
 
     # TODO maybe customize
     print(f'{bot.user} hat sich angemeldet!')
 
+
 @bot.command(name='hello')
 async def hello_command(ctx):
 
-    await ctx.send('Hello! I am your AI Language Bot. Enter !commands to see a list of commands at your disposal.')
+    await ai_language_bot.first_contact(ctx)
+
 
 @bot.command(name='commands')
 async def cmds_command(ctx):
 
     await ctx.send('Available commands: !hello, !commands, !clear')
+
 
 @bot.command(name='clear')
 async def clear_command(ctx):
@@ -93,6 +97,7 @@ async def health_check(request):
 
     return web.Response(text='Bot is alive!')
 
+
 async def start_web_server():
 
     app = web.Application()
@@ -102,12 +107,14 @@ async def start_web_server():
     site = web.TCPSite(runner , '0.0.0.0', int(os.environ.get('PORT', 8080)))
     await site.start()
 
+
 # Bot start
 async def main():
 
     await db.init_db_pool()
     await start_web_server()
     await bot.start(os.environ['DISCORD_TOKEN'])
+
 
 if __name__ == '__main__':
 
