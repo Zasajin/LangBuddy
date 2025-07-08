@@ -60,7 +60,7 @@ class AILanguageBot:
 
     # Maybe adjust for different use cases
     # i.e. admin only, keep some messages
-    def reset_conversation(self, user_id: str) -> bool:
+    async def reset_conversation(self, user_id: str) -> bool:
 
         if user_id in self.conversation_history:
 
@@ -71,11 +71,11 @@ class AILanguageBot:
         return False
 
 
-    def first_contact(self, ctx):
+    async def first_contact(self, ctx):
 
         try:
 
-            result = db.check_user(str(ctx.author.id))
+            result = await db.check_user(str(ctx.author.id))
 
             if result:
 
@@ -104,7 +104,7 @@ class AILanguageBot:
 
                         try:
 
-                            self.get_ai_response(
+                            await self.get_ai_response(
                                 message=ctx.message.content,
                                 user_id=str(ctx.author.id),
                                 model='general',
@@ -122,7 +122,7 @@ class AILanguageBot:
 
                         try:
 
-                            self.get_ai_response(
+                            await self.get_ai_response(
                                 message=ctx.message.content,
                                 user_id=str(ctx.author.id),
                                 model='general',
