@@ -63,8 +63,12 @@ async def add_user(discord_id):
             ''', str(discord_id))
 
             if await self.check_user(discord_id):
-                
-                
+
+                return True
+
+            else:
+
+                return False
 
 
 async def check_user(discord_id):
