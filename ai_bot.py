@@ -12,7 +12,7 @@ class AILanguageBot:
         self.client = client
         self.model_options =  model_options
         self.conversation_history: Dict[str, List[Dict[str, str]]] = {}
-        self.max_history = 50
+        self.max_history = 20
 
 
     async def get_ai_response(self, message: str, user_id: str, model: str, system_prompt: Optional[str] = None) -> str:
@@ -33,11 +33,10 @@ class AILanguageBot:
             messages.extend(self.conversation_history[user_id])
             messages.append({'role': 'user', 'content': message})
 
-            # Add default model
             response = await self.client.chat.completions.create(
                 model=self.model_options.get(model, 'qwen/qwen3-8b'),
                 messages=messages,
-                max_tokens=500,  # Adjust as needed
+                max_tokens=100,  # Adjust as needed
                 temperature=0.7,  # Adjust as needed
             )
 
@@ -46,14 +45,12 @@ class AILanguageBot:
             self.conversation_history[user_id].append({'role': 'user', 'content': message})
             self.conversation_history[user_id].append({'role': 'assistant', 'content': ai_response})
 
-            # TODO: adjust history cleanse logic
             if len(self.conversation_history[user_id]) > self.max_history:
 
                 self.conversation_history[user_id] = self.conversation_history[user_id][-self.max_history:]
 
             return ai_response
         
-        # Maybe adjust error message (output {str(e)})
         except Exception as e:
 
             logger.error(f"Error in get_ai_response: {str(e)}")
@@ -74,6 +71,7 @@ class AILanguageBot:
         return False
 
 
+    # TODO: Add functionality to start chatting in the last learned language of a user
     def first_contact(self, ctx):
 
         try:
@@ -88,7 +86,7 @@ class AILanguageBot:
                         message=ctx.message.content,
                         user_id=str(ctx.author.id),
                         model= 'general',
-                        system_prompt='You are an optimistic language teacher and one of your regular students approaches you. Greet them appropriately to the current daytime CET and ask them how you may help them.'
+                        system_prompt='You are an optimistic language teacher and one of your regular students approaches you. Greet them appropriately to the current central european daytime and ask them how you may help them.'
                     )
                 
                 except Exception as e:
@@ -111,7 +109,7 @@ class AILanguageBot:
                                 message=ctx.message.content,
                                 user_id=str(ctx.author.id),
                                 model='general',
-                                system_prompt='You are an optimistic language teacher and a new students approaches you. Greet them appropriately to the current daytime CET.'
+                                system_prompt='You are an optimistic language teacher and a new students approaches you. Greet them appropriately to the current central europe daytime.'
                             )
                             # TODO: Add functionality to explain the user the bot
                         
