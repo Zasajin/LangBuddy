@@ -1,5 +1,6 @@
 import asyncpg
 import os
+from typing import Dict, List, Optional
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -63,15 +64,13 @@ async def add_user(discord_id):
             ON CONFLICT (discord_id) DO NOTHING
             ''', str(discord_id))
 
-        if await self.check_user(discord_id):
+        if await check_user(discord_id):
 
             return True
 
         else:
 
             return False
-
-        return await check_user(discord_id)
 
 
 async def check_user(discord_id):
@@ -104,7 +103,7 @@ async def add_language(discord_id: str, language: str, native_language: str, cef
                 VALUES ($1, $2, $3, $4)
                 ''', discord_id, language, native_language, cefr_level)
 
-            if await self.get_user_language_id(discord_id):
+            if await get_user_language_id(discord_id):
 
                 return True
 
@@ -128,5 +127,3 @@ async def add_language(discord_id: str, language: str, native_language: str, cef
             else:
 
                 return False
-
-        return result

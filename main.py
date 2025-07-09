@@ -8,6 +8,7 @@ import logging
 from aiohttp import web
 from ai_bot import AILanguageBot
 import db
+from typing import Dict, List, Optional
 
 # Loading environment variables
 load_dotenv()
