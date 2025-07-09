@@ -92,7 +92,7 @@ async def check_user(discord_id):
             return False
 
 
-async def add_language(discord_id: str, language: str, native_language: str, cefr_level: Optional[str] = None):
+async def add_language(discord_id: str, learning_language: str, native_language: str, cefr_level: Optional[str] = None):
 
     async with DB_POOL.acquire() as conn:
 
@@ -111,7 +111,7 @@ async def add_language(discord_id: str, language: str, native_language: str, cef
         await conn.execute('''
             INSERT INTO user_languages (user_id, learning_language, native_language, cefr_level)
             VALUES ($1, $2, $3, $4)
-           ''', discord_id, language, native_language, actual_cefr)
+           ''', user_id, learning_language, native_language, actual_cefr)
 
         return await get_user_language_id(discord_id) is not None
 
