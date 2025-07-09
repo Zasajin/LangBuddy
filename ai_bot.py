@@ -69,7 +69,7 @@ class AILanguageBot:
 
             logger.error(f"Error in get_ai_response: {str(e)}")
 
-            return "Sorry, I couldn't process your request at the moment. Please try again later.")
+            return "Sorry, I couldn't process your request at the moment. Please try again later."
 
 
     # Maybe adjust for different use cases
