@@ -62,14 +62,14 @@ class AILanguageBot:
 
             if ai_response and ai_response.strip():
 
-                ctx.send(ai_response)
+                return ai_response
 
         # Maybe adjust error message (output {str(e)})
         except Exception as e:
 
             logger.error(f"Error in get_ai_response: {str(e)}")
 
-            await ctx.send("Sorry, I couldn't process your request at the moment. Please try again later.")
+            return "Sorry, I couldn't process your request at the moment. Please try again later.")
 
 
     # Maybe adjust for different use cases
