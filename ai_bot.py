@@ -64,7 +64,6 @@ class AILanguageBot:
 
                 return ai_response
 
-        # Maybe adjust error message (output {str(e)})
         except Exception as e:
 
             logger.error(f"Error in get_ai_response: {str(e)}")
