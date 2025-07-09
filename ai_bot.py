@@ -28,10 +28,16 @@ class AILanguageBot:
                 # TODO: customize system prompt
                 system_prompt = '' 
         
+            print(f"Model for user {user_id}: {model}")  # Debugging line
+            print(f"System prompt for user {user_id}: {system_prompt}")  # Debugging line
+            print(f'Message for user {user_id}: {message}')  # Debugging line
+
             # Message array with added history 
             messages = [{'role': 'system', 'content': system_prompt}]
             messages.extend(self.conversation_history[user_id])
             messages.append({'role': 'user', 'content': message})
+
+            print(f"Messages for user {user_id}: {messages}")  # Debugging line
 
             # Add default model
             response = await self.client.chat.completions.create(
@@ -42,23 +48,28 @@ class AILanguageBot:
             )
 
             ai_response = response.choices[0].message.content
+            print(f"AI response for user {user_id}: {ai_response}")  # Debugging line
 
             self.conversation_history[user_id].append({'role': 'user', 'content': message})
             self.conversation_history[user_id].append({'role': 'assistant', 'content': ai_response})
+
+            print(f"Updated conversation history for user {user_id}: {self.conversation_history[user_id]}")  # Debugging line
 
             # TODO: adjust history cleanse logic
             if len(self.conversation_history[user_id]) > self.max_history:
 
                 self.conversation_history[user_id] = self.conversation_history[user_id][-self.max_history:]
 
-            return ai_response
-        
+            if ai_response and ai_response.strip():
+
+                ctx.send(ai_response)
+
         # Maybe adjust error message (output {str(e)})
         except Exception as e:
 
             logger.error(f"Error in get_ai_response: {str(e)}")
 
-            return "Sorry, I couldn't process your request at the moment. Please try again later."
+            await ctx.send("Sorry, I couldn't process your request at the moment. Please try again later.")
 
 
     # Maybe adjust for different use cases
@@ -79,6 +90,7 @@ class AILanguageBot:
         try:
 
             result = await db.check_user(str(ctx.author.id))
+            print(f"User check result: {result}")  # Debugging line
 
             if result:
 
@@ -90,14 +102,21 @@ class AILanguageBot:
                         model= 'general',
                         system_prompt='You are an optimistic language teacher and one of your regular students approaches you. Greet them appropriately to the current daytime CET and ask them how you may help them.'
                     )
+                    print(f"AI response: {response}")  # Debugging line
 
-                    await ctx.send(response)
+                    if response and response.strip():
+
+                        await ctx.send(response)
+
+                    else:
+
+                        await ctx.send("I'm having trouble generating a response. Please try again later. 01")
 
                 except Exception as e:
 
                     logger.error(f"Error in first_contact: {str(e)}")
 
-                    return "Sorry, I couldn't process your request at the moment. Please try again later."
+                    await ctx.send("Sorry, I couldn't process your request at the moment. Please try again later. 01")
 
             else:
 
@@ -117,14 +136,22 @@ class AILanguageBot:
                             )
 
                             # TODO: Add functionality to explain the user the bot
-                            await ctx.send(response)
+                            print(f"AI response: {response}")  # Debugging line
+
+                            if response and response.strip():
+
+                                await ctx.send(response)
+
+                            else:
+
+                                await ctx.send("I'm having trouble generating a response. Please try again later. 02")
 
                         except Exception as e:
 
                             logger.error(f"Error in first_contact: {str(e)}")
 
-                            return "Sorry, I couldn't process your request at the moment. Please try again later."
-                    
+                            await ctx.send("Sorry, I couldn't process your request at the moment. Please try again later. 02")
+
                     else:
 
                         try:
@@ -137,22 +164,30 @@ class AILanguageBot:
                             )
 
                             # TODO: Add functionality to explain the user the bot
-                            await ctx.send(response)
+                            print(f"AI response: {response}")  # Debugging line
+
+                            if response and response.strip():
+
+                                await ctx.send(response)
+
+                            else:
+
+                                await ctx.send("I'm having trouble generating a response. Please try again later. 03")
 
                         except Exception as e:
 
                             logger.error(f"Error in first_contact: {str(e)}")
 
-                            return "Sorry, I couldn't process your request at the moment. Please try again later."
+                            await ctx.send("Sorry, I couldn't process your request at the moment. Please try again later. 03")
 
                 except Exception as e:
 
                     logger.error(f"Error in first_contact: {str(e)}")
 
-                    return "Sorry, I couldn't process your request at the moment. Please try again later."
+                    await ctx.send("Sorry, I couldn't process your request at the moment. Please try again later. 03")
 
         except Exception as e:
 
             logger.error(f"Error in first_contact: {str(e)}")
 
-            return "Sorry, I couldn't process your request at the moment. Please try again later."
+            await ctx.send("Sorry, I couldn't process your request at the moment. Please try again later. 03")
