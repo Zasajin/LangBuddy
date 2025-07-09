@@ -70,13 +70,14 @@ async def add_user(discord_id):
             else:
 
                 return False
+        return await check_user(discord_id)
 
 
 async def check_user(discord_id):
 
     async with DB_POOL.acquire() as conn:
 
-        result = await conn.fetchrow('''
+        result = await conn.fetchval('''
             SELECT EXISTS (
                 SELECT 1 FROM users WHERE discord_id = $1
             )
@@ -126,3 +127,5 @@ async def add_language(discord_id: str, language: str, native_language: str, cef
             else:
 
                 return False
+
+        return result
