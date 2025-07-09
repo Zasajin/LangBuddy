@@ -8,6 +8,7 @@ import logging
 from aiohttp import web
 from ai_bot import AILanguageBot
 import db
+from typing import Dict, List, Optional
 
 # Loading environment variables
 load_dotenv()
@@ -75,7 +76,7 @@ async def hello_command(ctx):
 @bot.command(name='commands')
 async def cmds_command(ctx):
 
-    await ctx.send('Available commands: !hello, !commands, !clear')
+    await ctx.send('Available commands: !hello, !commands, !clear, !add_lang <target_language, native_language, cefr_level(optional)>')
 
 
 @bot.command(name='clear')
@@ -90,6 +91,24 @@ async def clear_command(ctx):
     else:
 
         await ctx.send('Failed to clear your conversation history. Please try again later.')
+
+
+@bot.command(name='add_lang')
+async def add_lang_command(ctx, language: str, native_language: str, cefr_level: str = None):
+
+    saved = await db.add_language(str(ctx.author.id), language, native_language, cefr_level)
+
+    if saved:
+        
+        print('Adding language:', language)
+
+        await ctx.send(f'Language {language} added successfully!')
+
+    else:
+
+        print('Failed to add language:', language)
+
+        await ctx.send('Failed to add language. Please try again later.')
 
 
 # Keepalive server

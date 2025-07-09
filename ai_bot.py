@@ -12,7 +12,7 @@ class AILanguageBot:
         self.client = client
         self.model_options =  model_options
         self.conversation_history: Dict[str, List[Dict[str, str]]] = {}
-        self.max_history = 50
+        self.max_history = 20
 
 
     async def get_ai_response(self, message: str, user_id: str, model: str, system_prompt: Optional[str] = None) -> str:
@@ -43,7 +43,7 @@ class AILanguageBot:
             response = await self.client.chat.completions.create(
                 model=self.model_options.get(model, 'qwen/qwen3-8b'),
                 messages=messages,
-                max_tokens=500,  # Adjust as needed
+                max_tokens=100,  # Adjust as needed
                 temperature=0.7,  # Adjust as needed
             )
 
@@ -64,7 +64,6 @@ class AILanguageBot:
 
                 return ai_response
 
-        # Maybe adjust error message (output {str(e)})
         except Exception as e:
 
             logger.error(f"Error in get_ai_response: {str(e)}")
@@ -95,12 +94,12 @@ class AILanguageBot:
             if result:
 
                 try:
-
+                    response_language = await db.get_user_language_id(str(ctx.author.id))
                     response = await self.get_ai_response(
                         message=ctx.message.content,
                         user_id=str(ctx.author.id),
                         model= 'general',
-                        system_prompt='You are an optimistic language teacher and one of your regular students approaches you. Greet them appropriately to the current daytime CET and ask them how you may help them.'
+                        system_prompt=f'Answer in {response_language}. You are an optimistic language teacher and one of your regular students approaches you. Greet them appropriately to the current central european daytime and ask them how you may help them.'
                     )
                     print(f"AI response: {response}")  # Debugging line
 
@@ -127,12 +126,12 @@ class AILanguageBot:
                     if success:
 
                         try:
-
+                            
                             response = await self.get_ai_response(
                                 message=ctx.message.content,
                                 user_id=str(ctx.author.id),
                                 model='general',
-                                system_prompt='You are an optimistic language teacher and a new students approaches you. Greet them appropriately to the current daytime CET.'
+                                system_prompt='You are an optimistic language teacher and a new students approaches you. Greet them appropriately to the current central europe daytime.'
                             )
 
                             # TODO: Add functionality to explain the user the bot

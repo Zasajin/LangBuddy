@@ -1,5 +1,6 @@
 import asyncpg
 import os
+from typing import Dict, List, Optional
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -10,9 +11,13 @@ DB_POOL = None
 async def init_db_pool():
     
     global DB_POOL
-    DB_POOL = await asyncpg.create_pool(dsn=os.getenv("SUPABASE_DB_URL"))
+    DB_POOL = await asyncpg.create_pool(
+        dsn=os.getenv("SUPABASE_DB_URL"),
+        statement_cache_size=0
+        )
 
 
+# Most recently added language
 async def get_user_language_id(discord_id):
 
     async with DB_POOL.acquire() as conn:
@@ -62,7 +67,13 @@ async def add_user(discord_id):
             ON CONFLICT (discord_id) DO NOTHING
             ''', str(discord_id))
 
-        return await check_user(discord_id)
+        if await check_user(discord_id):
+
+            return True
+
+        else:
+
+            return False
 
 
 async def check_user(discord_id):
@@ -74,5 +85,37 @@ async def check_user(discord_id):
                 SELECT 1 FROM users WHERE discord_id = $1
             )
             ''', str(discord_id))
+        
+        if result:
 
-        return result
+            return True
+
+        else:
+
+            return False
+
+
+async def add_language(discord_id: str, learning_language: str, native_language: str, cefr_level: Optional[str] = None):
+
+    async with DB_POOL.acquire() as conn:
+
+        user_id = await conn.fetchval('''
+            SELECT id FROM users WHERE discord_id = $1
+           ''', str(discord_id))
+
+        if not user_id:
+
+            print(f"User with discord_id {discord_id} does not exist.") # Debugging line
+
+            return False
+
+        actual_cefr = cefr_level if cefr_level else 'A1' # Assume beginner if no level provided
+
+        await conn.execute('''
+            INSERT INTO user_languages (user_id, learning_language, native_language, cefr_level)
+            VALUES ($1, $2, $3, $4)
+           ''', user_id, learning_language, native_language, actual_cefr)
+
+        return await get_user_language_id(discord_id) is not None
+
+    
