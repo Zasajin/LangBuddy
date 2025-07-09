@@ -13,6 +13,7 @@ async def init_db_pool():
     DB_POOL = await asyncpg.create_pool(dsn=os.getenv("SUPABASE_DB_URL"))
 
 
+# Most recently added language
 async def get_user_language_id(discord_id):
 
     async with DB_POOL.acquire() as conn:
@@ -62,6 +63,13 @@ async def add_user(discord_id):
             ON CONFLICT (discord_id) DO NOTHING
             ''', str(discord_id))
 
+            if await self.check_user(discord_id):
+
+                return True
+
+            else:
+
+                return False
         return await check_user(discord_id)
 
 
@@ -74,5 +82,50 @@ async def check_user(discord_id):
                 SELECT 1 FROM users WHERE discord_id = $1
             )
             ''', str(discord_id))
+        
+        if result:
+
+            return True
+
+        else:
+
+            return False
+
+
+async def add_language(discord_id: str, language: str, native_language: str, cefr_level: Optional[str] = None):
+
+    if cefr_level:
+
+        async with DB_POOL.acquire() as conn:
+
+            await conn.execute('''
+                INSERT INTO user_languages (user_id, language, native_language, cefr_level)
+                VALUES ($1, $2, $3, $4)
+                ''', discord_id, language, native_language, cefr_level)
+
+            if await self.get_user_language_id(discord_id):
+
+                return True
+
+            else:
+
+                return False
+
+    else:
+        
+        async with DB_POOL.acquire() as conn:
+
+            await conn.execute('''
+                INSERT INTO user_languages (user_id, language, native_language, cefr_level)
+                VALUES ($1, $2, $3, $4)
+                ''', discord_id, language, native_language, 'A1') # If no cefr is provided, assume starter
+
+            if await self.get_user_language_id(discord_id):
+
+                return True
+
+            else:
+
+                return False
 
         return result
