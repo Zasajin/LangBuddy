@@ -84,13 +84,15 @@ class AILanguageBot:
 
                 try:
 
-                    await self.get_ai_response(
+                    response = await self.get_ai_response(
                         message=ctx.message.content,
                         user_id=str(ctx.author.id),
                         model= 'general',
                         system_prompt='You are an optimistic language teacher and one of your regular students approaches you. Greet them appropriately to the current daytime CET and ask them how you may help them.'
                     )
-                
+
+                    await ctx.send(response)
+
                 except Exception as e:
 
                     logger.error(f"Error in first_contact: {str(e)}")
@@ -107,14 +109,16 @@ class AILanguageBot:
 
                         try:
 
-                            await self.get_ai_response(
+                            response = await self.get_ai_response(
                                 message=ctx.message.content,
                                 user_id=str(ctx.author.id),
                                 model='general',
                                 system_prompt='You are an optimistic language teacher and a new students approaches you. Greet them appropriately to the current daytime CET.'
                             )
+
                             # TODO: Add functionality to explain the user the bot
-                        
+                            await ctx.send(response)
+
                         except Exception as e:
 
                             logger.error(f"Error in first_contact: {str(e)}")
@@ -125,14 +129,16 @@ class AILanguageBot:
 
                         try:
 
-                            await self.get_ai_response(
+                            response = await self.get_ai_response(
                                 message=ctx.message.content,
                                 user_id=str(ctx.author.id),
                                 model='general',
                                 system_prompt='You are an optimistic language teacher and a new student approaches you. Greet them, but tell them you could not register them (to the database)'
                             )
+
                             # TODO: Add functionality to explain the user the bot
-                            
+                            await ctx.send(response)
+
                         except Exception as e:
 
                             logger.error(f"Error in first_contact: {str(e)}")
