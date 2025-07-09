@@ -11,7 +11,10 @@ DB_POOL = None
 async def init_db_pool():
     
     global DB_POOL
-    DB_POOL = await asyncpg.create_pool(dsn=os.getenv("SUPABASE_DB_URL"))
+    DB_POOL = await asyncpg.create_pool(
+        dsn=os.getenv("SUPABASE_DB_URL"),
+        statements_cache_size=0
+        )
 
 
 # Most recently added language
