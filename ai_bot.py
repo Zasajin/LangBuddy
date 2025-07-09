@@ -94,12 +94,12 @@ class AILanguageBot:
             if result:
 
                 try:
-
+                    response_language = await db.get_user_language_id(str(ctx.author.id))
                     response = await self.get_ai_response(
                         message=ctx.message.content,
                         user_id=str(ctx.author.id),
                         model= 'general',
-                        system_prompt='You are an optimistic language teacher and one of your regular students approaches you. Greet them appropriately to the current central european daytime and ask them how you may help them.'
+                        system_prompt=f'Answer in {response_language}. You are an optimistic language teacher and one of your regular students approaches you. Greet them appropriately to the current central european daytime and ask them how you may help them.'
                     )
                     print(f"AI response: {response}")  # Debugging line
 
@@ -126,7 +126,7 @@ class AILanguageBot:
                     if success:
 
                         try:
-
+                            
                             response = await self.get_ai_response(
                                 message=ctx.message.content,
                                 user_id=str(ctx.author.id),
