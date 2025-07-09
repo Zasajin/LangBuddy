@@ -94,36 +94,25 @@ async def check_user(discord_id):
 
 async def add_language(discord_id: str, language: str, native_language: str, cefr_level: Optional[str] = None):
 
-    if cefr_level:
+    async with DB_POOL.acquire() as conn:
 
-        async with DB_POOL.acquire() as conn:
+        user_id = await conn.fetchval('''
+            SELECT id FROM users WHERE discord_id = $1
+           ''', str(discord_id))
 
-            await conn.execute('''
-                INSERT INTO user_languages (user_id, language, native_language, cefr_level)
-                VALUES ($1, $2, $3, $4)
-                ''', discord_id, language, native_language, cefr_level)
+        if not user_id:
 
-            if await get_user_language_id(discord_id):
+            print(f"User with discord_id {discord_id} does not exist.") # Debugging line
 
-                return True
+            return False
 
-            else:
+        actual_cefr = cefr_level if cefr_level else 'A1' # Assume beginner if no level provided
 
-                return False
+        await conn.execute('''
+            INSERT INTO user_languages (user_id, learning_language, native_language, cefr_level)
+            VALUES ($1, $2, $3, $4)
+           ''', discord_id, language, native_language, actual_cefr)
 
-    else:
-        
-        async with DB_POOL.acquire() as conn:
+        return await get_user_language_id(discord_id) is not None
 
-            await conn.execute('''
-                INSERT INTO user_languages (user_id, language, native_language, cefr_level)
-                VALUES ($1, $2, $3, $4)
-                ''', discord_id, language, native_language, 'A1') # If no cefr is provided, assume starter
-
-            if await self.get_user_language_id(discord_id):
-
-                return True
-
-            else:
-
-                return False
+    
