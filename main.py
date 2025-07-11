@@ -109,7 +109,18 @@ async def add_lang_command(ctx, language: str, native_language: str, cefr_level:
 
         await ctx.send('Failed to add language. Please try again later.')
 
+async def delete_lang_command(ctx, language: str):
 
+    deleted = await db.delete_language(str(ctx.author.id), language)
+
+    if deleted:
+
+        await ctx.send(f'Language {language} deleted successfully!')
+
+    else:
+
+        await ctx.send('Failed to delete language. Please try again later.')
+        
 # Keepalive server
 async def health_check(request):
 

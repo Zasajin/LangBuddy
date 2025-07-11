@@ -128,4 +128,27 @@ async def add_language(discord_id: str, language: str, native_language: str, cef
 
                 return False
 
-        return result
+async def delete_language(discord_id: str; learning_language: str):
+
+    async with DB_POOL.acquire() as conn:
+
+        user_id = await conn.fetchval('''
+        SELECT id from FROM user WHERE discord_id = $1
+        ''', str(discord_id))
+
+        if not user_id:
+
+            print(f"User with discord_id {discord_id} does not exist.") # Debugging line
+
+            return False
+
+        native_language, cefr_level = await conn.fetchval('''
+            SELECT native_language, cefr_levels
+            FROM user_languages
+            WHERE user_id, learning_language = $1, $2
+            ''', str user_id, str learning_language)
+
+        await conn.execute('''
+            DELETE FROM user_languages (user_id, learning_language, native_language, cefr_level)
+            VALUES ($1, $2, $3, $4)
+            ''', str user_id, str learning_language, str native_language, str cefr_level)
