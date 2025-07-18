@@ -75,7 +75,7 @@ async def hello_command(ctx):
 @bot.command(name='commands')
 async def cmds_command(ctx):
 
-    await ctx.send('Available commands: !hello, !commands, !clear, !add_lang <target_language, native_language, cefr_level(optional)>, !delete_lang <target_language>')
+    await ctx.send('Available commands: !hello, !commands, !clear, !add_lang <target_language, native_language, cefr_level(optional)>, !delete_lang <target_language>, !onboard_lang <Language>')
 
 
 @bot.command(name='clear')
@@ -121,7 +121,17 @@ async def delete_lang_command(ctx, language: str):
     else:
 
         await ctx.send('Failed to delete language. Please try again later.')
-        
+
+# write reusable for "reexamination" - if user suspects he may advance on their own
+async def onboarding(ctx, language: str):
+
+    # Check if user exists
+    lang_exists_check = await db.lang_exists_check(str(ctx.author.id), language)
+    # if lang already saved to user, do an onboarding quiz
+    if lang_exists_check:
+
+    # if not, ask for native_langauge
+
 # Keepalive server
 async def health_check(request):
 

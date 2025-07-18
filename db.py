@@ -17,7 +17,7 @@ async def get_user_language_id(discord_id):
 
     async with DB_POOL.acquire() as conn:
 
-        return await conn.fetchval('''
+        lang_id = await conn.fetchval('''
             SELECT ul.id
             FROM users u
             JOIN user_languages ul ON ul.user_id = u.id
@@ -25,6 +25,13 @@ async def get_user_language_id(discord_id):
             ORDER BY ul.created_at DESC
             LIMIT 1
             ''', str(discord_id))
+
+        return await conn.fetchval('''
+            SELECT ul.learning_language
+            FROM users u
+            JOIN user_languages ul ON ul.user_id = u.id
+            WHERE u.discord_id = $1 AND ul.id = $2
+            ''', str(discord_id), str(lang_id))
 
 
 async def save_session_summary(user_language_id, summary, message_count):
@@ -162,3 +169,31 @@ async def delete_language(discord_id: str; learning_language: str):
 
             return False
     
+
+async def lang_exists_check(discord_id: str, language: str):
+
+    async with DB_POOL.acquire() as conn:
+
+        user_id = await conn.fetchval('''
+            SELECT id FROM users WHERE discord_id = $1
+            ''', str(discoord_id))
+
+        if not user_id:
+
+            print(f"User with discord_id {discord_id} does not exist.") # Debugging line
+
+            return False
+
+        result = await conn.fetchval('''
+            SELECT EXISTS (
+                SELECT 1 FROM user_languages
+                WHERE user_id = $1 AND language = $2)
+            ''', str(user_id), str(language))
+        
+        if result:
+
+            return True
+
+        else:
+
+            return False
