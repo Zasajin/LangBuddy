@@ -75,7 +75,7 @@ async def hello_command(ctx):
 @bot.command(name='commands')
 async def cmds_command(ctx):
 
-    await ctx.send('Available commands: !hello, !commands, !clear, !add_lang <target_language, native_language, cefr_level(optional)>')
+    await ctx.send('Available commands: !hello, !commands, !clear, !add_lang <target_language, native_language, cefr_level(optional)>, !delete_lang <target_language>')
 
 
 @bot.command(name='clear')
@@ -109,6 +109,7 @@ async def add_lang_command(ctx, language: str, native_language: str, cefr_level:
 
         await ctx.send('Failed to add language. Please try again later.')
 
+
 async def delete_lang_command(ctx, language: str):
 
     deleted = await db.delete_language(str(ctx.author.id), language)
@@ -135,7 +136,6 @@ async def start_web_server():
     await runner.setup()
     site = web.TCPSite(runner , '0.0.0.0', int(os.environ.get('PORT', 8080)))
     await site.start()
-
 
 # Bot start
 async def main():

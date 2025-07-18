@@ -94,6 +94,7 @@ class AILanguageBot:
             if result:
 
                 try:
+                    
                     response_language = await db.get_user_language_id(str(ctx.author.id))
                     response = await self.get_ai_response(
                         message=ctx.message.content,

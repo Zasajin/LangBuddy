@@ -12,7 +12,6 @@ async def init_db_pool():
     global DB_POOL
     DB_POOL = await asyncpg.create_pool(dsn=os.getenv("SUPABASE_DB_URL"))
 
-
 # Most recently added language
 async def get_user_language_id(discord_id):
 
@@ -70,6 +69,7 @@ async def add_user(discord_id):
             else:
 
                 return False
+
         return await check_user(discord_id)
 
 
@@ -128,6 +128,7 @@ async def add_language(discord_id: str, language: str, native_language: str, cef
 
                 return False
 
+
 async def delete_language(discord_id: str; learning_language: str):
 
     async with DB_POOL.acquire() as conn:
@@ -152,3 +153,12 @@ async def delete_language(discord_id: str; learning_language: str):
             DELETE FROM user_languages (user_id, learning_language, native_language, cefr_level)
             VALUES ($1, $2, $3, $4)
             ''', str user_id, str learning_language, str native_language, str cefr_level)
+
+        if not await self.get_user_language_id(discord_id):
+
+            return True
+
+        else:
+
+            return False
+    
