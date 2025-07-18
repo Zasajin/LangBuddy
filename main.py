@@ -125,12 +125,24 @@ async def delete_lang_command(ctx, language: str):
 # write reusable for "reexamination" - if user suspects he may advance on their own
 async def onboarding(ctx, language: str):
 
-    # Check if user exists
     lang_exists_check = await db.lang_exists_check(str(ctx.author.id), language)
-    # if lang already saved to user, do an onboarding quiz
-    if lang_exists_check:
 
-    # if not, ask for native_langauge
+    if lang_exists_check:
+        
+        await ai_language_bot.onboarding_quiz(
+            ctx=ctx,
+            user_id=str(ctx.author.id),
+            language=language
+        )
+
+    else: 
+
+        await ai_language_bot.onboarding(
+            ctx=ctx,
+            user_id=str(ctx.author.id),
+            language=language
+        )
+
 
 # Keepalive server
 async def health_check(request):

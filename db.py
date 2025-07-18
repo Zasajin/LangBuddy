@@ -197,3 +197,13 @@ async def lang_exists_check(discord_id: str, language: str):
         else:
 
             return False
+
+# insert a language to db after onboarding quiz
+async def post_onboarding_insert(discord_id: str, language: str, native_language: str, cefr_level: Optional[str] = None):
+
+    pass
+
+# change cefr after reexamination
+async def change_cefr(discord_id: str, language: str, new_cefr_level: str):
+
+    pass

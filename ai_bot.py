@@ -94,7 +94,7 @@ class AILanguageBot:
             if result:
 
                 try:
-                    
+
                     response_language = await db.get_user_language_id(str(ctx.author.id))
                     response = await self.get_ai_response(
                         message=ctx.message.content,
@@ -191,3 +191,19 @@ class AILanguageBot:
             logger.error(f"Error in first_contact: {str(e)}")
 
             await ctx.send("Sorry, I couldn't process your request at the moment. Please try again later. 03")
+
+
+    async def onboarding_quiz(self, ctx, user_id: str, language: str):
+
+        # quiz them on their knowledge
+        # insert new cefr accordingly to db
+        pass
+
+
+    async def onboarding(self, ctx, language: str):
+
+        # onboarding process for new users
+        # ask them about their native language
+        # ask if they start the language fresh or know some already
+        # insert data to db accordingly
+        pass
