@@ -176,7 +176,7 @@ async def lang_exists_check(discord_id: str, language: str):
 
         user_id = await conn.fetchval('''
             SELECT id FROM users WHERE discord_id = $1
-            ''', str(discoord_id))
+            ''', str(discord_id))
 
         if not user_id:
 
@@ -201,9 +201,70 @@ async def lang_exists_check(discord_id: str, language: str):
 # insert a language to db after onboarding quiz
 async def post_onboarding_insert(discord_id: str, language: str, native_language: str, cefr_level: Optional[str] = None):
 
-    pass
+    async with DB_POOL.acquire() as conn:
+
+        user_id = await conn.fetchval('''
+            SELECT id FROM users WHERE discord_id = $1
+            ''', str(discord_id))
+
+        if not user_id:
+
+            print(f"User with discord_id {discord_id} does not exist.") # Debugging line
+
+            return False
+        
+        if not cefr_level:
+
+            cefr_level = 'A1' # safety net
+
+        try:
+
+            result = await conn.execute('''
+                INSERT INTO user_languages (user_id, learning_language, native_language, cefr_level)
+                VALUES ($1, $2, $3, $4)
+            ''', str(user_id), str(language), str(native_language), str(cefr_level))
+
+            return True
+        
+        except Exception as e:
+
+            print(f'Error inserting data to database: {e}')
+
+            return False
 
 # change cefr after reexamination
 async def change_cefr(discord_id: str, language: str, new_cefr_level: str):
 
-    pass
+    async with DB_POOL.acquire() as conn:
+
+        user_id = await conn.fetchval('''
+            SELECT id FROM users WHERE discord_id = $1
+            ''', str(discord_id))
+
+        if not user_id:
+
+            print(f"User with discord_id {discord_id} does not exist.") # Debugging line
+
+            return False
+
+        result = await conn.execute('''
+            UPDATE user_languages
+            SET cefr_level = $1
+            WHERE user_id = $2 AND learning_language = $3
+            ''', str(new_cefr_level), str(user_id), str(language))
+
+        if result == 'UPDATE 1':
+
+            return True
+
+        elif result == 'UPDATE 0':
+
+            print('No change to the database has been done. Either no user-language combination found or query faulty.')
+
+            return False
+
+        else:
+
+            print('Multiple rows affected. Check for mistake.')
+
+            return False
