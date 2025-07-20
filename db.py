@@ -263,7 +263,4 @@ async def change_cefr(discord_id: str, language: str, new_cefr_level: str):
             print('Multiple rows affected. Check for mistake.')
 
             return False
-
-        return await get_user_language_id(discord_id) is not None
-
     
