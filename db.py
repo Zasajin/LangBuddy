@@ -17,7 +17,7 @@ async def init_db_pool():
         )
 
 # Most recently added language
-async def get_user_language_id(discord_id):
+async def get_user_language_id(discord_id) -> str:
 
     async with DB_POOL.acquire() as conn:
 
@@ -37,7 +37,8 @@ async def get_user_language_id(discord_id):
             WHERE u.discord_id = $1 AND ul.id = $2
             ''', str(discord_id), str(lang_id))
 
-
+# TODO: add column to user_languages
+# For saving progress
 async def save_session_summary(user_language_id, summary, message_count):
 
     async with DB_POOL.acquire() as conn:
@@ -47,8 +48,8 @@ async def save_session_summary(user_language_id, summary, message_count):
             VALUES ($1, $2, $3)
             ''', user_language_id, summary, message_count)
 
-
-async def get_latest_summary(discord_id):
+# For loading progress
+async def get_latest_summary(discord_id) -> str:
 
     async with DB_POOL.acquire() as conn:
 
@@ -63,7 +64,7 @@ async def get_latest_summary(discord_id):
             ''', str(discord_id))
 
 
-async def add_user(discord_id):
+async def add_user(discord_id) -> bool:
 
     async with DB_POOL.acquire() as conn:
 
@@ -82,7 +83,7 @@ async def add_user(discord_id):
             return False
 
 
-async def check_user(discord_id):
+async def check_user(discord_id) -> bool:
 
     async with DB_POOL.acquire() as conn:
 
@@ -101,7 +102,7 @@ async def check_user(discord_id):
             return False
 
 
-async def add_language(discord_id: str, learning_language: str, native_language: str, cefr_level: Optional[str] = None):
+async def add_language(discord_id: str, learning_language: str, native_language: str, cefr_level: Optional[str] = None) -> bool:
 
     async with DB_POOL.acquire() as conn:
 
@@ -131,7 +132,7 @@ async def add_language(discord_id: str, learning_language: str, native_language:
                 return False
 
 
-async def delete_language(discord_id: str; learning_language: str):
+async def delete_language(discord_id: str; learning_language: str) -> bool:
 
     async with DB_POOL.acquire() as conn:
 
@@ -165,7 +166,7 @@ async def delete_language(discord_id: str; learning_language: str):
             return False
     
 
-async def lang_exists_check(discord_id: str, language: str):
+async def lang_exists_check(discord_id: str, language: str) -> bool:
 
     async with DB_POOL.acquire() as conn:
 
@@ -193,8 +194,8 @@ async def lang_exists_check(discord_id: str, language: str):
 
             return False
 
-# insert a language to db after onboarding quiz
-async def post_onboarding_insert(discord_id: str, language: str, native_language: str, cefr_level: Optional[str] = None):
+# Insert a language to db after onboarding quiz
+async def post_onboarding_insert(discord_id: str, language: str, native_language: str, cefr_level: Optional[str] = None) -> bool:
 
     async with DB_POOL.acquire() as conn:
 
@@ -227,8 +228,8 @@ async def post_onboarding_insert(discord_id: str, language: str, native_language
 
             return False
 
-# change cefr after reexamination
-async def change_cefr(discord_id: str, language: str, new_cefr_level: str):
+# Change cefr after reexamination
+async def change_cefr(discord_id: str, language: str, new_cefr_level: str) -> bool:
 
     async with DB_POOL.acquire() as conn:
 
@@ -263,4 +264,34 @@ async def change_cefr(discord_id: str, language: str, new_cefr_level: str):
             print('Multiple rows affected. Check for mistake.')
 
             return False
-    
+
+# Getter for responses in native language 
+async def get_nat_lang(discord_id: str, language: str) -> str:
+
+    async with DB_POOL.acquire() as conn:
+
+        user_id = await conn.fetchval('''
+            SELECT id FROM users WHERE discord_id = $1
+            ''', str(discord_id))
+
+        if not user_id:
+
+            print(f"User with discord_id {discord_id} does not exist.") # Debugging line
+
+            return False
+
+        result = await conn.fetchval('''
+            SELECT native_language FROM user_languages
+            WHERE user_id = $1 AND language = $2)
+        ''', str(user_id), str(language))
+        
+        if result is not None:
+
+            return result
+
+        else:
+
+            print(f'Unable to fetch native language for User: {user_id} and language: {language}. '
+                  f'Setting default to English.')
+
+            return 'English'

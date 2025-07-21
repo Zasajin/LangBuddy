@@ -76,7 +76,7 @@ async def hello_command(ctx):
 @bot.command(name='commands')
 async def cmds_command(ctx):
 
-    await ctx.send('Available commands: !hello, !commands, !clear, !add_lang <target_language, native_language, cefr_level(optional)>, !delete_lang <target_language>, !onboard_lang <Language>')
+    await ctx.send('Available commands: !hello, !commands, !clear, !add_lang <target_language, native_language, cefr_level(optional)>, !delete_lang <target_language>, !onboard_lang <language>, !exam <language>')
 
 
 @bot.command(name='clear')
@@ -124,7 +124,8 @@ async def delete_lang_command(ctx, language: str):
         await ctx.send('Failed to delete language. Please try again later.')
 
 # write reusable for "reexamination" - if user suspects he may advance on their own
-async def onboarding(ctx, language: str):
+@bot.command(name='onboard_lang', 'exam')
+async def onboarding(ctx, language: str, native_language: str):
 
     lang_exists_check = await db.lang_exists_check(str(ctx.author.id), language)
 
@@ -133,7 +134,8 @@ async def onboarding(ctx, language: str):
         await ai_language_bot.onboarding_quiz(
             ctx=ctx,
             user_id=str(ctx.author.id),
-            language=language
+            language=language,
+            native_language=db.get_nat_lang(str(ctx.author.id), language)
         )
 
     else: 
@@ -142,8 +144,10 @@ async def onboarding(ctx, language: str):
             ctx=ctx,
             user_id=str(ctx.author.id),
             language=language
+            native_language=native_language
         )
-
+        
+    # insert new cefr accordingly to db
 
 # Keepalive server
 async def health_check(request):
