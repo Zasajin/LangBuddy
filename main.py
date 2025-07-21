@@ -127,10 +127,16 @@ async def delete_lang_command(ctx, language: str):
 @bot.command(name='onboard_lang', 'exam')
 async def onboarding(ctx, language: str, native_language: str):
 
-    lang_exists_check = await db.lang_exists_check(str(ctx.author.id), language)
+    # Message routing
+    onboarder[user_id] = {'language': language, 'native_language': native_language}
+
+    # Check to distinguish reexam/fresh onboard
+    # If user already has a language entry in db, we assume they are reexamining
+    lang_exists_check = await db.lang_exists_check(str(ctx.author.id), str(language))
 
     if lang_exists_check:
         
+        # reexam
         await ai_language_bot.onboarding_quiz(
             ctx=ctx,
             user_id=str(ctx.author.id),
@@ -140,14 +146,37 @@ async def onboarding(ctx, language: str, native_language: str):
 
     else: 
 
+        # fresh onboard
         await ai_language_bot.onboarding(
             ctx=ctx,
             user_id=str(ctx.author.id),
             language=language
             native_language=native_language
         )
-        
+
+    await ctx.send('Please answer all questions in one message.')
+
+    # final response from bot should be a summary of the results
     # insert new cefr accordingly to db
+
+# TODO: finish onboarding input handling
+@bot.event
+async def on_message(message):
+
+    if message.author == bot.user:
+
+        return
+
+    user_id = str(message.author.id)
+
+    if user_id in onboarder:
+
+        await ai_language_bot.finish_onboarding(str(message), str(user_id), str(message.content))
+
+        return
+
+    await bot.process_commands(message)
+
 
 # Keepalive server
 async def health_check(request):

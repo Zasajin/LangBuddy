@@ -295,3 +295,7 @@ async def get_nat_lang(discord_id: str, language: str) -> str:
                   f'Setting default to English.')
 
             return 'English'
+
+async def onboard_insert():
+
+    pass

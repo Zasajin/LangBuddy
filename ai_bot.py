@@ -198,7 +198,8 @@ class AILanguageBot:
 
             system_prompt = ('You are a language teacher. Your student is new in your tutelage and you are supposed to quiz them on their existing '
                             f'knowledge in {language}. The precise goal of this quiz is to assess their CEFR-Level. '
-                            f'Their proficient language is {native_language}, so use that to communicate.')
+                            f'Their proficient language is {native_language}, so use that to communicate.'
+                            f'Send them a full quiz to evaluate them, but note, that your token limit is 100, so be concise.')
 
             print(f"Model for user {user_id}: {model}")  # Debugging line
             print(f'Message for user {user_id}: {message}')  # Debugging line
@@ -231,21 +232,15 @@ class AILanguageBot:
 
             if ai_response and ai_response.strip():
 
-                return ai_response
+                await ctx.send(ai_response)
 
         except Exception as e:
 
-            logger.error(f"Error in get_ai_response: {str(e)}")
+            logger.error(f"Error in onboarding_quiz: {str(e)}")
 
-            return "Sorry, I couldn't process your request at the moment. Please try again later."
-
-        # insert new cefr accordingly to db
+            await ctx.send('Sorry, I couldn\'t process your request at the moment. Please try again later.')
 
 
-    async def onboarding(self, ctx, language: str) -> str:
+    async def finish_onboarding(self):
 
-        # onboarding process for new users
-        # ask them about their native language
-        # ask if they start the language fresh or know some already
-        # insert data to db accordingly
         pass
