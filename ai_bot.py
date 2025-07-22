@@ -241,7 +241,7 @@ class AILanguageBot:
             await ctx.send('Sorry, I couldn\'t process your request at the moment. Please try again later.')
 
 
-    async def finish_onboarding(self):
+    async def finish_onboarding(self, ctx, user_id: str, message: str, model: str) -> str:
 
         try:
 
@@ -288,8 +288,12 @@ class AILanguageBot:
 
                 await ctx.send(ai_response)
 
+                return ai_response
+
         except Exception as e:
 
             logger.error(f"Error in finish_onboarding: {str(e)}")
 
             await ctx.send('Sorry, I couldn\'t process your request at the moment. Please try again later.')
+
+            return None

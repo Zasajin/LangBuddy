@@ -296,6 +296,21 @@ async def get_nat_lang(discord_id: str, language: str) -> str:
 
             return 'English'
 
-async def onboard_insert():
 
-    pass
+async def onboard_insert(user_id: str, learning_language: str, native_language: str, cefr_level: str) -> bool:
+
+    async with DB_POOL.acquire() as conn:
+
+        try:
+            await conn.execute('''
+                INSERT INTO user_languages (user_id, learning_language, native_language, cefr_level)
+                VALUES ($1, $2, $3, $4)
+            ''', str(user_id), str(learning_language), str(native_language), str(cefr_level))
+
+            return True
+
+        except Exception as e:
+
+            print(f'Error inserting onboarding data: {e}')
+
+            return False

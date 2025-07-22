@@ -9,6 +9,7 @@ from aiohttp import web
 from ai_bot import AILanguageBot
 import db
 from typing import Dict, List, Optional
+import re
 
 # Loading environment variables
 load_dotenv()
@@ -156,10 +157,8 @@ async def onboarding(ctx, language: str, native_language: str):
 
     await ctx.send('Please answer all questions in one message.')
 
-    # final response from bot should be a summary of the results
     # insert new cefr accordingly to db
 
-# TODO: finish onboarding input handling
 @bot.event
 async def on_message(message):
 
@@ -171,11 +170,40 @@ async def on_message(message):
 
     if user_id in onboarder:
 
-        await ai_language_bot.finish_onboarding(str(message), str(user_id), str(message.content))
+        ai_response = await ai_language_bot.finish_onboarding(ctx, str(user_id), str(message.content), 'assessment')
+
+        if ai_response:
+
+            cefr_level = extract_cefr(ai_response)
+
+            if cefr_level:
+
+                await db.post_onboarding_insert(
+                    user_id=user_id,
+                    learning_language=onboarder[user_id]['language'],
+                    native_language=onboarder[user_id]['native_language'],
+                    cefr_level=cefr_level
+                )
 
         return
 
     await bot.process_commands(message)
+
+
+def extract_cefr(response):
+
+    if not response or not isinstance(response, str):
+
+        return None
+
+    response_upper = response.upper()
+
+    pattern = r'\b[A-C][1-2]\b'
+    match = re.search(pattern, response_upper)
+
+    if match:
+
+        return match.group(1)
 
 
 # Keepalive server
