@@ -206,7 +206,7 @@ class AILanguageBot:
             # Message array with added history 
             messages = [{'role': 'system', 'content': system_prompt}]
             messages.extend(self.conversation_history[user_id])
-            messages.append({'role': 'user', 'content': message})
+            messages.append({'role': 'user', 'content': ctx.message})
 
             print(f"Messages for user {user_id}: {messages}")  # Debugging line
 
@@ -260,7 +260,7 @@ class AILanguageBot:
             # Message array with added history 
             messages = [{'role': 'system', 'content': system_prompt}]
             messages.extend(self.conversation_history[user_id])
-            messages.append({'role': 'user', 'content': message})
+            messages.append({'role': 'user', 'content': ctx.message})
 
             print(f"Messages for user {user_id}: {messages}")  # Debugging line
 
