@@ -60,6 +60,7 @@ MODEL_OPTIONS = {
 # Initialize the AI Language Bot
 ai_language_bot = AILanguageBot(client, MODEL_OPTIONS)
 
+onboarder = {}
 
 @bot.event
 async def on_ready():
@@ -111,7 +112,7 @@ async def add_lang_command(ctx, language: str, native_language: str, cefr_level:
 
         await ctx.send('Failed to add language. Please try again later.')
 
-
+@bot.command(name='delete_lang')
 async def delete_lang_command(ctx, language: str):
 
     deleted = await db.delete_language(str(ctx.author.id), language)
@@ -124,8 +125,8 @@ async def delete_lang_command(ctx, language: str):
 
         await ctx.send('Failed to delete language. Please try again later.')
 
-# write reusable for "reexamination" - if user suspects he may advance on their own
-@bot.command(name='onboard_lang', 'exam')
+
+@bot.command(name='onboard_lang', aliases=['exam'])
 async def onboarding(ctx, language: str, native_language: str):
 
     # Message routing
@@ -151,13 +152,12 @@ async def onboarding(ctx, language: str, native_language: str):
         await ai_language_bot.onboarding(
             ctx=ctx,
             user_id=str(ctx.author.id),
-            language=language
+            language=language,
             native_language=native_language
         )
 
     await ctx.send('Please answer all questions in one message.')
 
-    # insert new cefr accordingly to db
 
 @bot.event
 async def on_message(message):
