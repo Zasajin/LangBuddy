@@ -195,7 +195,7 @@ async def lang_exists_check(discord_id: str, language: str) -> bool:
             return False
 
 # Insert a language to db after onboarding quiz
-async def post_onboarding_insert(discord_id: str, language: str, native_language: str, cefr_level: Optional[str] = None) -> bool:
+async def post_onboarding_insert(discord_id: str, language: str, native_language: str, cefr_level: str) -> bool:
 
     async with DB_POOL.acquire() as conn:
 
@@ -208,10 +208,6 @@ async def post_onboarding_insert(discord_id: str, language: str, native_language
             print(f"User with discord_id {discord_id} does not exist.") # Debugging line
 
             return False
-        
-        if not cefr_level:
-
-            cefr_level = 'A1' # safety net
 
         try:
 
@@ -295,22 +291,3 @@ async def get_nat_lang(discord_id: str, language: str) -> str:
                   f'Setting default to English.')
 
             return 'English'
-
-
-async def onboard_insert(user_id: str, learning_language: str, native_language: str, cefr_level: str) -> bool:
-
-    async with DB_POOL.acquire() as conn:
-
-        try:
-            await conn.execute('''
-                INSERT INTO user_languages (user_id, learning_language, native_language, cefr_level)
-                VALUES ($1, $2, $3, $4)
-            ''', str(user_id), str(learning_language), str(native_language), str(cefr_level))
-
-            return True
-
-        except Exception as e:
-
-            print(f'Error inserting onboarding data: {e}')
-
-            return False
