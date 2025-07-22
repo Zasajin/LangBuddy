@@ -214,7 +214,7 @@ class AILanguageBot:
             response = await self.client.chat.completions.create(
                 model=self.model_options.get(model, 'deepseek/deepseek-r1-0528'),
                 messages=messages,
-                max_tokens=100,  # Adjust as needed
+                max_tokens=150,  # Adjust as needed
                 temperature=0.7,  # Adjust as needed
             )
 
@@ -243,4 +243,53 @@ class AILanguageBot:
 
     async def finish_onboarding(self):
 
-        pass
+        try:
+
+            if user_id not in self.conversation_history:
+
+                self.conversation_history[user_id] = []
+
+            system_prompt = ('You are a language teacher. Your student is new in your tutelage and you are supposed to quiz them on their existing '
+                            'The precise goal of this quiz is to assess their CEFR-Level. '
+                            'Evaluate their answers to your quiz and determine their CEFR-Level. '
+                            'Give them a breakdown of their performance, their CEFR-Level and a short explanation of what that means and '
+                            'that they may start practicing now anytime. Comunicate in their proficient language, which you are to determine from the chat history.')
+
+            print(f"Model for user {user_id}: {model}")  # Debugging line
+            print(f'Message for user {user_id}: {message}')  # Debugging line
+
+            # Message array with added history 
+            messages = [{'role': 'system', 'content': system_prompt}]
+            messages.extend(self.conversation_history[user_id])
+            messages.append({'role': 'user', 'content': message})
+
+            print(f"Messages for user {user_id}: {messages}")  # Debugging line
+
+            response = await self.client.chat.completions.create(
+                model=self.model_options.get(model, 'deepseek/deepseek-r1-0528'),
+                messages=messages,
+                max_tokens=150,  # Adjust as needed
+                temperature=0.7,  # Adjust as needed
+            )
+
+            ai_response = response.choices[0].message.content
+            print(f"AI response for user {user_id}: {ai_response}")  # Debugging line
+
+            self.conversation_history[user_id].append({'role': 'user', 'content': message})
+            self.conversation_history[user_id].append({'role': 'assistant', 'content': ai_response})
+
+            print(f"Updated conversation history for user {user_id}: {self.conversation_history[user_id]}")  # Debugging line
+
+            if len(self.conversation_history[user_id]) > self.max_history:
+
+                self.conversation_history[user_id] = self.conversation_history[user_id][-4:]
+
+            if ai_response and ai_response.strip():
+
+                await ctx.send(ai_response)
+
+        except Exception as e:
+
+            logger.error(f"Error in finish_onboarding: {str(e)}")
+
+            await ctx.send('Sorry, I couldn\'t process your request at the moment. Please try again later.')
