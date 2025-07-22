@@ -123,13 +123,13 @@ async def add_language(discord_id: str, learning_language: str, native_language:
             VALUES ($1, $2, $3, $4)
            ''', user_id, learning_language, native_language, actual_cefr)
 
-            if await get_user_language_id(discord_id):
+        if await get_user_language_id(discord_id):
 
-                return True
+            return True
 
-            else:
+        else:
 
-                return False
+            return False
 
 
 async def delete_language(discord_id: str, learning_language: str) -> bool:
