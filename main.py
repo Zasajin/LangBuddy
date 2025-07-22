@@ -130,6 +130,8 @@ async def delete_lang_command(ctx, language: str):
 @bot.command(name='onboard_lang', aliases=['exam'])
 async def onboarding(ctx, language: str, native_language: str):
 
+    discord_id = (ctx.author.id)
+
     # Check to distinguish reexam/fresh onboard
     # If user already has a language entry in db, we assume they are reexamining
     lang_exists_check = await db.lang_exists_check(str(ctx.author.id), str(language))
@@ -137,12 +139,12 @@ async def onboarding(ctx, language: str, native_language: str):
     if lang_exists_check:
         
         # Message routing
-        reexaminee[user_id] = {'language': language, 'native_language': native_language}
+        reexaminee[discord_id] = {'language': language, 'native_language': native_language}
 
         # reexam
         await ai_language_bot.onboarding_quiz(
             ctx=ctx,
-            user_id=str(ctx.author.id),
+            discord_id=str(ctx.author.id),
             language=language,
             native_language=db.get_nat_lang(str(ctx.author.id), str(language)),
             model=MODEL_OPTIONS['assessment']
@@ -151,12 +153,12 @@ async def onboarding(ctx, language: str, native_language: str):
     else: 
 
         # Message routing
-        onboarder[user_id] = {'language': language, 'native_language': native_language}
+        onboarder[discord_id] = {'language': language, 'native_language': native_language}
 
         # fresh onboard
         await ai_language_bot.onboarding_quiz(
             ctx=ctx,
-            user_id=str(ctx.author.id),
+            discord_id=str(ctx.author.id),
             language=language,
             native_language=native_language,
             model=MODEL_OPTIONS['assessment']
@@ -172,11 +174,11 @@ async def on_message(message):
 
         return
 
-    user_id = str(message.author.id)
+    discord_id = str(message.author.id)
 
     if user_id in reexaminee:
 
-        ai_response = await ai_language_bot.finish_onboarding(ctx, str(user_id), str(message.content), 'assessment')
+        ai_response = await ai_language_bot.finish_onboarding(ctx, str(discord_id), str(message.content), 'assessment')
 
         if ai_response:
 
@@ -185,18 +187,18 @@ async def on_message(message):
             if cefr_level:
 
                 await db.change_cefr(
-                    user_id=user_id,
+                    discord_id=user_id,
                     learning_language=onboarder[user_id]['language'],
                     cefr_level=cefr_level
                 )
 
-        reexaminee.pop(user_id, None)
+        reexaminee.pop(discord_id, None)
 
         return
 
-    if user_id in onboarder:
+    if discord_id in onboarder:
 
-        ai_response = await ai_language_bot.finish_onboarding(ctx, str(user_id), str(message.content), 'assessment')
+        ai_response = await ai_language_bot.finish_onboarding(ctx, str(discord_id), str(message.content), 'assessment')
 
         if ai_response:
 
@@ -205,13 +207,13 @@ async def on_message(message):
             if cefr_level:
 
                 await db.post_onboarding_insert(
-                    user_id=user_id,
-                    learning_language=onboarder[user_id]['language'],
-                    native_language=onboarder[user_id]['native_language'],
+                    discord_id=user_id,
+                    learning_language=onboarder[discord_id]['language'],
+                    native_language=onboarder[discord_id]['native_language'],
                     cefr_level=cefr_level
                 )
 
-        onboarder.pop(user_id, None)
+        onboarder.pop(discord_id, None)
 
         return
 
