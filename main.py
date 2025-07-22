@@ -61,6 +61,7 @@ MODEL_OPTIONS = {
 ai_language_bot = AILanguageBot(client, MODEL_OPTIONS)
 
 onboarder = {}
+reexaminee = {}
 
 @bot.event
 async def on_ready():
@@ -129,31 +130,36 @@ async def delete_lang_command(ctx, language: str):
 @bot.command(name='onboard_lang', aliases=['exam'])
 async def onboarding(ctx, language: str, native_language: str):
 
-    # Message routing
-    onboarder[user_id] = {'language': language, 'native_language': native_language}
-
     # Check to distinguish reexam/fresh onboard
     # If user already has a language entry in db, we assume they are reexamining
     lang_exists_check = await db.lang_exists_check(str(ctx.author.id), str(language))
 
     if lang_exists_check:
         
+        # Message routing
+        reexaminee[user_id] = {'language': language, 'native_language': native_language}
+
         # reexam
         await ai_language_bot.onboarding_quiz(
             ctx=ctx,
             user_id=str(ctx.author.id),
             language=language,
             native_language=db.get_nat_lang(str(ctx.author.id), language)
+            model=MODEL_OPTIONS['assessment']
         )
 
     else: 
 
+        # Message routing
+        onboarder[user_id] = {'language': language, 'native_language': native_language}
+
         # fresh onboard
-        await ai_language_bot.onboarding(
+        await ai_language_bot.onboarding_quiz(
             ctx=ctx,
             user_id=str(ctx.author.id),
             language=language,
-            native_language=native_language
+            native_language=native_language,
+            model=MODEL_OPTIONS['assessment']
         )
 
     await ctx.send('Please answer all questions in one message.')
@@ -167,6 +173,26 @@ async def on_message(message):
         return
 
     user_id = str(message.author.id)
+
+    if user_id in reexaminee:
+
+        ai_response = await ai_language_bot.finish_onboarding(ctx, str(user_id), str(message.content), 'assessment')
+
+        if ai_response:
+
+            cefr_level = extract_cefr(ai_response)
+
+            if cefr_level:
+
+                await db.change_cefr(
+                    user_id=user_id,
+                    learning_language=onboarder[user_id]['language'],
+                    cefr_level=cefr_level
+                )
+
+        reexaminee.pop(user_id, None)
+
+        return
 
     if user_id in onboarder:
 
@@ -184,6 +210,8 @@ async def on_message(message):
                     native_language=onboarder[user_id]['native_language'],
                     cefr_level=cefr_level
                 )
+
+        onboarder.pop(user_id, None)
 
         return
 

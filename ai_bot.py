@@ -188,7 +188,7 @@ class AILanguageBot:
             await ctx.send("Sorry, I couldn't process your request at the moment. Please try again later. 03")
 
 
-    async def onboarding_quiz(self, ctx, user_id: str, language: str, native_language: str) -> str:
+    async def onboarding_quiz(self, ctx, user_id: str, language: str, native_language: str, model: str) -> str:
 
         try:
 
@@ -202,7 +202,6 @@ class AILanguageBot:
                             f'Send them a full quiz to evaluate them, but note, that your token limit is 100, so be concise.')
 
             print(f"Model for user {user_id}: {model}")  # Debugging line
-            print(f'Message for user {user_id}: {message}')  # Debugging line
 
             # Message array with added history 
             messages = [{'role': 'system', 'content': system_prompt}]
