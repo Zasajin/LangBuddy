@@ -144,7 +144,7 @@ async def onboarding(ctx, language: str, native_language: str):
             ctx=ctx,
             user_id=str(ctx.author.id),
             language=language,
-            native_language=db.get_nat_lang(str(ctx.author.id), language)
+            native_language=db.get_nat_lang(str(ctx.author.id), str(language)),
             model=MODEL_OPTIONS['assessment']
         )
 
