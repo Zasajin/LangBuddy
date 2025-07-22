@@ -9,6 +9,7 @@ from aiohttp import web
 from ai_bot import AILanguageBot
 import db
 from typing import Dict, List, Optional
+import re
 
 # Loading environment variables
 load_dotenv()
@@ -76,7 +77,7 @@ async def hello_command(ctx):
 @bot.command(name='commands')
 async def cmds_command(ctx):
 
-    await ctx.send('Available commands: !hello, !commands, !clear, !add_lang <target_language, native_language, cefr_level(optional)>')
+    await ctx.send('Available commands: !hello, !commands, !clear, !add_lang <target_language, native_language, cefr_level(optional)>, !delete_lang <target_language>, !onboard_lang <language>, !exam <language>')
 
 
 @bot.command(name='clear')
@@ -111,6 +112,100 @@ async def add_lang_command(ctx, language: str, native_language: str, cefr_level:
         await ctx.send('Failed to add language. Please try again later.')
 
 
+async def delete_lang_command(ctx, language: str):
+
+    deleted = await db.delete_language(str(ctx.author.id), language)
+
+    if deleted:
+
+        await ctx.send(f'Language {language} deleted successfully!')
+
+    else:
+
+        await ctx.send('Failed to delete language. Please try again later.')
+
+# write reusable for "reexamination" - if user suspects he may advance on their own
+@bot.command(name='onboard_lang', 'exam')
+async def onboarding(ctx, language: str, native_language: str):
+
+    # Message routing
+    onboarder[user_id] = {'language': language, 'native_language': native_language}
+
+    # Check to distinguish reexam/fresh onboard
+    # If user already has a language entry in db, we assume they are reexamining
+    lang_exists_check = await db.lang_exists_check(str(ctx.author.id), str(language))
+
+    if lang_exists_check:
+        
+        # reexam
+        await ai_language_bot.onboarding_quiz(
+            ctx=ctx,
+            user_id=str(ctx.author.id),
+            language=language,
+            native_language=db.get_nat_lang(str(ctx.author.id), language)
+        )
+
+    else: 
+
+        # fresh onboard
+        await ai_language_bot.onboarding(
+            ctx=ctx,
+            user_id=str(ctx.author.id),
+            language=language
+            native_language=native_language
+        )
+
+    await ctx.send('Please answer all questions in one message.')
+
+    # insert new cefr accordingly to db
+
+@bot.event
+async def on_message(message):
+
+    if message.author == bot.user:
+
+        return
+
+    user_id = str(message.author.id)
+
+    if user_id in onboarder:
+
+        ai_response = await ai_language_bot.finish_onboarding(ctx, str(user_id), str(message.content), 'assessment')
+
+        if ai_response:
+
+            cefr_level = extract_cefr(ai_response)
+
+            if cefr_level:
+
+                await db.post_onboarding_insert(
+                    user_id=user_id,
+                    learning_language=onboarder[user_id]['language'],
+                    native_language=onboarder[user_id]['native_language'],
+                    cefr_level=cefr_level
+                )
+
+        return
+
+    await bot.process_commands(message)
+
+
+def extract_cefr(response):
+
+    if not response or not isinstance(response, str):
+
+        return None
+
+    response_upper = response.upper()
+
+    pattern = r'\b[A-C][1-2]\b'
+    match = re.search(pattern, response_upper)
+
+    if match:
+
+        return match.group(1)
+
+
 # Keepalive server
 async def health_check(request):
 
@@ -125,7 +220,6 @@ async def start_web_server():
     await runner.setup()
     site = web.TCPSite(runner , '0.0.0.0', int(os.environ.get('PORT', 8080)))
     await site.start()
-
 
 # Bot start
 async def main():
