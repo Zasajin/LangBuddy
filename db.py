@@ -123,7 +123,7 @@ async def add_language(discord_id: str, learning_language: str, native_language:
             VALUES ($1, $2, $3, $4)
            ''', user_id, learning_language, native_language, actual_cefr)
 
-            if await self.get_user_language_id(discord_id):
+            if await get_user_language_id(discord_id):
 
                 return True
 
@@ -132,12 +132,12 @@ async def add_language(discord_id: str, learning_language: str, native_language:
                 return False
 
 
-async def delete_language(discord_id: str; learning_language: str) -> bool:
+async def delete_language(discord_id: str, learning_language: str) -> bool:
 
     async with DB_POOL.acquire() as conn:
 
         user_id = await conn.fetchval('''
-        SELECT id from FROM user WHERE discord_id = $1
+        SELECT id FROM user WHERE discord_id = $1
         ''', str(discord_id))
 
         if not user_id:
@@ -147,17 +147,17 @@ async def delete_language(discord_id: str; learning_language: str) -> bool:
             return False
 
         native_language, cefr_level = await conn.fetchval('''
-            SELECT native_language, cefr_levels
+            SELECT native_language, cefr_level
             FROM user_languages
-            WHERE user_id, learning_language = $1, $2
-            ''', str user_id, str learning_language)
+            WHERE user_id = $1 AND learning_language = $2
+            ''', str (user_id), str (learning_language))
 
         await conn.execute('''
-            DELETE FROM user_languages (user_id, learning_language, native_language, cefr_level)
-            VALUES ($1, $2, $3, $4)
-            ''', str user_id, str learning_language, str native_language, str cefr_level)
+            DELETE FROM user_languages
+            WHERE user_id = $1 AND learning_language = $2
+            ''', str(user_id), str(learning_language))
 
-        if not await self.get_user_language_id(discord_id):
+        if not await get_user_language_id(discord_id):
 
             return True
 
@@ -183,7 +183,7 @@ async def lang_exists_check(discord_id: str, language: str) -> bool:
         result = await conn.fetchval('''
             SELECT EXISTS (
                 SELECT 1 FROM user_languages
-                WHERE user_id = $1 AND language = $2)
+                WHERE user_id = $1 AND learning_language = $2)
             ''', str(user_id), str(language))
         
         if result:
@@ -278,7 +278,7 @@ async def get_nat_lang(discord_id: str, language: str) -> str:
 
         result = await conn.fetchval('''
             SELECT native_language FROM user_languages
-            WHERE user_id = $1 AND language = $2)
+            WHERE user_id = $1 AND learning_language = $2)
         ''', str(user_id), str(language))
         
         if result is not None:
